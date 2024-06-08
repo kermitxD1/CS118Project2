@@ -1,0 +1,2 @@
+Please concisely describe your design of reliable data transfer, and any challenges you have overcome in the process. 
+Please don't be verbose, concise bullet-points are preferred.
