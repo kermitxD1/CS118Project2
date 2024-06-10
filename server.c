@@ -2,68 +2,77 @@
 #include <stdlib.h>
 #include <string.h>
 #include <arpa/inet.h>
+#include <unistd.h>
 #include "utils.h"
-
-#define SIZE 1024
  
-void write_file(int sockfd){
-  int n;
-  FILE *fp;
-  char *filename = "recv.txt";
-  char buffer[SIZE];
+void receive_file(int socket_fd){
+  int bytes_received;
+  FILE *file_pointer;
+  const char *output_file = "output.txt";
+  char buffer[1024];
  
-  fp = fopen(filename, "w");
+ //Open the target file for writing (always write to output.txt)
+  file_pointer = fopen(output_file, "w");
+  
   while (1) {
-    n = recv(sockfd, buffer, SIZE, 0);
-    if (n <= 0){
+    bytes_received = recv(socket_fd, buffer, 1024, 0);
+    if (bytes_received <= 0){
       break;
       return;
     }
-    fprintf(fp, "%s", buffer);
-    bzero(buffer, SIZE);
+    fprintf(file_pointer, "%s", buffer);
+    memset(buffer, 0, 1024);
   }
   return;
 }
  
 int main(){
-  char *ip = "127.0.0.1";
-  int port = 8080;
-  int e;
+  const char *server_ip = "127.0.0.1";
+  int server_port = 8080;
  
-  int sockfd, new_sock;
-  struct sockaddr_in server_addr, new_addr;
-  socklen_t addr_size;
-  //char buffer[SIZE];
+  int server_socket, client_socket;
+  struct sockaddr_in server_address, client_server;
+  socklen_t client_address_size;
+  char buffer[1024];
  
-  sockfd = socket(AF_INET, SOCK_STREAM, 0);
-  if(sockfd < 0) {
-    perror("[-]Error in socket");
+  //Create UDP socket 
+  server_socket = socket(AF_INET, SOCK_STREAM, 0);
+  if(server_socket < 0) {
+    perror("[-] Error creating socket");
     exit(1);
   }
   printf("[+]Server socket created successfully.\n");
  
-  server_addr.sin_family = AF_INET;
-  server_addr.sin_port = port;
-  server_addr.sin_addr.s_addr = inet_addr(ip);
+ //Configure the server address structure
+  server_address.sin_family = AF_INET;
+  server_address.sin_port = server_port;
+  server_address.sin_addr.s_addr = inet_addr(server_ip);
  
-  e = bind(sockfd, (struct sockaddr*)&server_addr, sizeof(server_addr));
-  if(e < 0) {
-    perror("[-]Error in bind");
+ //Bind the listen socket to the server address
+  if(bind(server_socket, (struct sockaddr*)&server_address, sizeof(server_address)) < 0) {
+    perror("[-] Error binding socket");
     exit(1);
   }
-  printf("[+]Binding successfull.\n");
+  printf("[+] Socket binding successfull.\n");
  
-  if(listen(sockfd, 10) == 0){
- printf("[+]Listening....\n");
+  if(listen(server_socket, 10) == 0){
+ printf("[+] Listening for incoming connections....\n");
  }else{
- perror("[-]Error in listening");
+ perror("[-] Error in listening");
     exit(1);
  }
  
-  addr_size = sizeof(new_addr);
-  new_sock = accept(sockfd, (struct sockaddr*)&new_addr, &addr_size);
-  write_file(new_sock);
-  printf("[+]Data written in the file successfully.\n");
+  client_address_size = sizeof(client_server);
+  client_socket = accept(server_socket, (struct sockaddr*)&client_server, &client_address_size);
+  
+  if (client_socket < 0){
+     perror("[-] Error accepting connection");
+     exit(1);
+  }
+      perror("[-] Connection accepted.\n");
+  
+  receive_file(client_socket);
+  printf("[+]Data written to file successfully.\n");
  
   return 0;
 }

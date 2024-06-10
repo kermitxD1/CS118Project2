@@ -1,2 +1,11 @@
-Please concisely describe your design of reliable data transfer, and any challenges you have overcome in the process. 
-Please don't be verbose, concise bullet-points are preferred.
+Design:
+-First I start the program with creating a socket and having it connect. 
+-Then a file is opened
+-Then the data is sent over to the server, 
+-from there the socket is closed
+-Once the server reeives the data 
+-it creates a new file and it writes the data into the file 
+-Then program stops.
+
+Challenges:
+This was a very challenging project due to me never using ubuntu before as well as never done a VM before. Being able to create socket programming was challenging due to understanding how to make that connection happen between the server and client. c. Also having to use a different program to run my VM because i have a macbook was difficutlt as well. I coudlnt use virtual box I had to use parallel.
